@@ -1,0 +1,65 @@
+name: Publish to JSR
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  verify-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Verify tag matches package version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VERSION=$(deno eval 'const config = JSON.parse(await Deno.readTextFile("deno.jsonc")); console.log(config.version);')
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "Tag v$TAG does not match package version $VERSION"
+            exit 1
+          fi
+
+      - name: Verify tag commit is on main
+        run: |
+          git fetch origin main --depth=1
+          if ! git branch -r --contains "$GITHUB_SHA" | grep -q "origin/main"; then
+            echo "Tag commit $GITHUB_SHA is not contained in origin/main"
+            exit 1
+          fi
+
+  checks:
+    needs:
+      - verify-version
+    uses: ./.github/workflows/checks.yml
+
+  publish:
+    runs-on: ubuntu-latest
+    needs:
+      - checks
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Publish
+        run: deno publish

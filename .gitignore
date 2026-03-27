@@ -1,0 +1,19 @@
+.DS_Store
+
+# Deno
+.deno/
+deno.lock
+
+# Test and coverage artifacts
+coverage/
+
+# Environment files
+.env
+.env.*
+
+# Editor and IDE files
+.idea/
+.vscode/
+
+# Logs
+*.log

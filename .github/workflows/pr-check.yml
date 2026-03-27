@@ -1,0 +1,12 @@
+name: PR Check
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
