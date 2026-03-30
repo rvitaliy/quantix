@@ -74,7 +74,7 @@ export class BollingerBands {
   }
 
   /** Computes a full Bollinger Bands series from an iterable input. */
-  static from(values: Iterable<number>, options: BollingerBandsOptions = {}): Array<
+  static from(values: Iterable<number>, options: BollingerBandsOptions = {}): ReadonlyArray<
     BollingerBandsResult | undefined
   > {
     const indicator = new BollingerBands(options);

@@ -56,7 +56,7 @@ export class SMA {
   }
 
   /** Computes a full SMA series from an iterable input. */
-  static from(values: Iterable<number>, options: SMAOptions = {}): Array<number | undefined> {
+  static from(values: Iterable<number>, options: SMAOptions = {}): ReadonlyArray<number | undefined> {
     const indicator = new SMA(options);
     return Array.from(values, (value) => indicator.next(value));
   }

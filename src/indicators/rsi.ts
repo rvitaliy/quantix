@@ -37,7 +37,7 @@ export class RSI {
   }
 
   /** Computes a full RSI series from an iterable input. */
-  static from(values: Iterable<number>, options: RSIOptions = {}): Array<number | undefined> {
+  static from(values: Iterable<number>, options: RSIOptions = {}): ReadonlyArray<number | undefined> {
     const indicator = new RSI(options);
     return Array.from(values, (value) => indicator.next(value));
   }

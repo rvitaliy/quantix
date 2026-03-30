@@ -56,7 +56,7 @@ export class RingBuffer<T> {
     return this.#values[(this.#cursor + index) % this.capacity];
   }
 
-  values(): T[] {
+  values(): ReadonlyArray<T> {
     if (this.#size === 0) {
       return [];
     }

@@ -56,7 +56,7 @@ export class SMMA {
   }
 
   /** Computes a full SMMA series from an iterable input. */
-  static from(values: Iterable<number>, options: SMMAOptions = {}): Array<number | undefined> {
+  static from(values: Iterable<number>, options: SMMAOptions = {}): ReadonlyArray<number | undefined> {
     const indicator = new SMMA(options);
     return Array.from(values, (value) => indicator.next(value));
   }
