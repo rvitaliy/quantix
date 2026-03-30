@@ -1,6 +1,10 @@
 import { RingBuffer } from '../core/ring-buffer.ts';
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
 
+/**
+ * Configuration for {@link SMA}.
+ * `period` controls the rolling window length and defaults to `14`.
+ */
 export type SMAOptions = {
   readonly period?: number;
 };
@@ -23,6 +27,7 @@ export class SMA {
     this.#window = new RingBuffer<number>(period);
   }
 
+  /** Commits a new value into the moving average state. */
   next(value: number): number | undefined {
     assertFiniteNumber('value', value);
 
@@ -41,6 +46,7 @@ export class SMA {
     return this.#sum / this.#period;
   }
 
+  /** Projects the next average without mutating committed state. */
   moment(value: number): number | undefined {
     assertFiniteNumber('value', value);
     if (!this.#window.isFull) {
@@ -51,6 +57,7 @@ export class SMA {
     return projectedSum / this.#period;
   }
 
+  /** Computes a full SMA series from an iterable input. */
   static from(values: Iterable<number>, options: SMAOptions = {}): Array<number | undefined> {
     const indicator = new SMA(options);
     return Array.from(values, (value) => indicator.next(value));

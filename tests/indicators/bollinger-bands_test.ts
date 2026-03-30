@@ -1,7 +1,7 @@
 import { assertAlmostEquals, assertEquals } from '@std/assert';
 
 import { BollingerBands, bollingerBands } from '../../mod.ts';
-import { assertDefined, assertDefinedNumber } from '../test-helpers.ts';
+import { assertDefined } from '../test-helpers.ts';
 
 const GOLDEN_BB_VALUES = [
   undefined,
@@ -39,7 +39,7 @@ Deno.test('BollingerBands emits undefined until the window is full', () => {
   }
 
   const value = assertDefined(indicator.next(20));
-  assertAlmostEquals(assertDefinedNumber(value.middle), 10.5);
+  assertAlmostEquals(value.middle, 10.5);
   assertAlmostEquals(value.upper, 22.032562594670797);
   assertAlmostEquals(value.lower, -1.0325625946707966);
 });
@@ -54,7 +54,7 @@ Deno.test('BollingerBands moment projects without mutating the stream', () => {
   const projected = assertDefined(indicator.moment(21));
   const committed = assertDefined(indicator.next(21));
 
-  assertAlmostEquals(assertDefinedNumber(projected.middle), assertDefinedNumber(committed.middle));
+  assertAlmostEquals(projected.middle, committed.middle);
   assertAlmostEquals(projected.upper, committed.upper);
   assertAlmostEquals(projected.lower, committed.lower);
 });
@@ -65,8 +65,8 @@ Deno.test('bollingerBands computes a full series', () => {
   assertEquals(series.slice(0, 19), new Array(19).fill(undefined));
   const twentieth = assertDefined(series[19]);
   const twentyFirst = assertDefined(series[20]);
-  assertAlmostEquals(assertDefinedNumber(twentieth.middle), 10.5);
-  assertAlmostEquals(assertDefinedNumber(twentyFirst.middle), 11.5);
+  assertAlmostEquals(twentieth.middle, 10.5);
+  assertAlmostEquals(twentyFirst.middle, 11.5);
 });
 
 Deno.test('BollingerBands matches the golden reference series', () => {
@@ -85,7 +85,7 @@ Deno.test('BollingerBands matches the golden reference series', () => {
 
     const actualBands = assertDefined(actual);
     assertAlmostEquals(actualBands.lower, expected.lower);
-    assertAlmostEquals(assertDefinedNumber(actualBands.middle), expected.middle);
+    assertAlmostEquals(actualBands.middle, expected.middle);
     assertAlmostEquals(actualBands.upper, expected.upper);
   }
 });

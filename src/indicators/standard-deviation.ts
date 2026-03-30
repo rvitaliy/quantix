@@ -1,12 +1,16 @@
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
 
+/**
+ * Configuration for {@link StandardDeviation}.
+ * `period` controls the rolling sample length and defaults to `20`.
+ */
 export type StandardDeviationOptions = {
   readonly period?: number;
 };
 
 /**
  * Rolling population standard deviation over a fixed window.
- * Returns `NaN` until the corresponding mean is available.
+ * Returns `undefined` until the corresponding mean is available.
  *
  * @see https://en.wikipedia.org/wiki/Standard_deviation
  */
@@ -23,7 +27,8 @@ export class StandardDeviation {
     this.#values = new Array<number | undefined>(period);
   }
 
-  next(value: number, mean: number | undefined): number {
+  /** Commits a new value into the rolling deviation window. */
+  next(value: number, mean: number | undefined): number | undefined {
     assertFiniteNumber('value', value);
 
     this.#values[this.#cursor] = value;
@@ -36,14 +41,15 @@ export class StandardDeviation {
     return this.#project(mean);
   }
 
-  moment(value: number, mean: number | undefined): number {
+  /** Projects the next deviation without mutating committed state. */
+  moment(value: number, mean: number | undefined): number | undefined {
     assertFiniteNumber('value', value);
     return this.#project(mean, value);
   }
 
-  #project(mean: number | undefined, previewValue?: number): number {
+  #project(mean: number | undefined, previewValue?: number): number | undefined {
     if (mean === undefined) {
-      return Number.NaN;
+      return undefined;
     }
 
     let squaredDistanceSum = 0;

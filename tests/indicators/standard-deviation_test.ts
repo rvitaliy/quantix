@@ -4,25 +4,25 @@ import { SMA, StandardDeviation } from '../../mod.ts';
 
 const DEFAULT_SD_INPUT = Array.from({ length: 25 }, (_, index) => index + 1);
 const GOLDEN_SD_OUTPUT = [
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
-  Number.NaN,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
   5.766281297335398,
   5.766281297335398,
   5.766281297335398,
@@ -34,14 +34,14 @@ const GOLDEN_SD_OUTPUT = [
 Deno.test('StandardDeviation computes population deviation for the default window', () => {
   const movingAverage = new SMA({ period: 20 });
   const indicator = new StandardDeviation();
-  let deviation = Number.NaN;
+  let deviation: number | undefined;
 
   for (const value of DEFAULT_SD_INPUT) {
     const mean = movingAverage.next(value);
     deviation = indicator.next(value, mean);
   }
 
-  assertAlmostEquals(deviation, 5.766281297335398);
+  assertAlmostEquals(deviation!, 5.766281297335398);
 });
 
 Deno.test('StandardDeviation moment projects without mutating the committed window', () => {
@@ -58,7 +58,7 @@ Deno.test('StandardDeviation moment projects without mutating the committed wind
   const projected = indicator.moment(21, projectedMean);
   const committed = indicator.next(21, committedMean);
 
-  assertAlmostEquals(projected, committed);
+  assertAlmostEquals(projected!, committed!);
 });
 
 Deno.test('StandardDeviation matches the golden reference series', () => {
@@ -75,11 +75,11 @@ Deno.test('StandardDeviation matches the golden reference series', () => {
     const actual = values[index];
     const expected = GOLDEN_SD_OUTPUT[index];
 
-    if (Number.isNaN(expected) === true) {
-      assertEquals(Number.isNaN(actual), true);
+    if (expected === undefined) {
+      assertEquals(actual, undefined);
       continue;
     }
 
-    assertAlmostEquals(actual, expected);
+    assertAlmostEquals(actual!, expected);
   }
 });

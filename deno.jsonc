@@ -1,6 +1,6 @@
 {
   "name": "@rvitaliy/quantix",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Streaming-first technical indicators in modern TypeScript.",
   "license": "MIT",
   "repository": {

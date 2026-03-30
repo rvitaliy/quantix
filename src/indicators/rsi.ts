@@ -1,6 +1,10 @@
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
 import { AvgChangeProvider } from '../internal/avg-change.ts';
 
+/**
+ * Configuration for {@link RSI}.
+ * `period` controls the Wilder smoothing length and defaults to `14`.
+ */
 export type RSIOptions = {
   readonly period?: number;
 };
@@ -19,18 +23,21 @@ export class RSI {
     this.#changes = new AvgChangeProvider(period);
   }
 
+  /** Commits a new value into the RSI state. */
   next(value: number): number | undefined {
     assertFiniteNumber('value', value);
     const averages = this.#changes.next(value);
     return projectRsi(averages);
   }
 
+  /** Projects the next RSI value without mutating committed state. */
   moment(value: number): number | undefined {
     assertFiniteNumber('value', value);
     const averages = this.#changes.moment(value);
     return projectRsi(averages);
   }
 
+  /** Computes a full RSI series from an iterable input. */
   static from(values: Iterable<number>, options: RSIOptions = {}): Array<number | undefined> {
     const indicator = new RSI(options);
     return Array.from(values, (value) => indicator.next(value));
@@ -49,10 +56,8 @@ export function rsi(
   return RSI.from(values, options);
 }
 
-function projectRsi(
-  averages: { averageGain: number | undefined; averageLoss: number | undefined } | undefined,
-): number | undefined {
-  if (averages?.averageGain === undefined || averages.averageLoss === undefined) {
+function projectRsi(averages: { averageGain: number; averageLoss: number } | undefined): number | undefined {
+  if (averages === undefined) {
     return undefined;
   }
 

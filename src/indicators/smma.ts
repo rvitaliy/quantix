@@ -1,5 +1,9 @@
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
 
+/**
+ * Configuration for {@link SMMA}.
+ * `period` controls the smoothing length and defaults to `14`.
+ */
 export type SMMAOptions = {
   readonly period?: number;
 };
@@ -22,6 +26,7 @@ export class SMMA {
     this.#period = period;
   }
 
+  /** Commits a new value into the smoothed average state. */
   next(value: number): number | undefined {
     assertFiniteNumber('value', value);
 
@@ -41,6 +46,7 @@ export class SMMA {
     return this.#average;
   }
 
+  /** Projects the next smoothed average without mutating committed state. */
   moment(value: number): number | undefined {
     assertFiniteNumber('value', value);
 
@@ -51,6 +57,7 @@ export class SMMA {
     return this.#project(value);
   }
 
+  /** Computes a full SMMA series from an iterable input. */
   static from(values: Iterable<number>, options: SMMAOptions = {}): Array<number | undefined> {
     const indicator = new SMMA(options);
     return Array.from(values, (value) => indicator.next(value));

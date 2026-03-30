@@ -1,8 +1,8 @@
 import { SMMA } from '../indicators/smma.ts';
 
 export type AverageChange = {
-  readonly averageGain: number | undefined;
-  readonly averageLoss: number | undefined;
+  readonly averageGain: number;
+  readonly averageLoss: number;
 };
 
 export class AvgChangeProvider {
@@ -34,14 +34,18 @@ export class AvgChangeProvider {
     return this.#project(value, true);
   }
 
-  #project(value: number, preview: boolean): AverageChange {
+  #project(value: number, preview: boolean): AverageChange | undefined {
     const change = value - this.#previousValue!;
     const gain = Math.max(change, 0);
     const loss = Math.max(-change, 0);
 
-    return {
-      averageGain: preview ? this.#averageGain.moment(gain) : this.#averageGain.next(gain),
-      averageLoss: preview ? this.#averageLoss.moment(loss) : this.#averageLoss.next(loss),
-    };
+    const averageGain = preview ? this.#averageGain.moment(gain) : this.#averageGain.next(gain);
+    const averageLoss = preview ? this.#averageLoss.moment(loss) : this.#averageLoss.next(loss);
+
+    if (averageGain === undefined || averageLoss === undefined) {
+      return undefined;
+    }
+
+    return { averageGain, averageLoss };
   }
 }

@@ -7,15 +7,8 @@ Deno.test('AvgChangeProvider returns undefined until a previous value exists', (
   const provider = new AvgChangeProvider(14);
 
   assertStrictEquals(provider.next(44), undefined);
-
-  const preview = assertDefined(provider.moment(44.15));
-  assertStrictEquals(preview.averageGain, undefined);
-  assertStrictEquals(preview.averageLoss, undefined);
-
-  const projected = assertDefined(provider.next(44.15));
-
-  assertStrictEquals(projected.averageGain, undefined);
-  assertStrictEquals(projected.averageLoss, undefined);
+  assertStrictEquals(provider.moment(44.15), undefined);
+  assertStrictEquals(provider.next(44.15), undefined);
 });
 
 Deno.test('AvgChangeProvider seeds gain and loss smoothing after the default period', () => {
@@ -39,13 +32,12 @@ Deno.test('AvgChangeProvider seeds gain and loss smoothing after the default per
   ] as const;
 
   const results = prices.map((price) => provider.next(price));
-  const beforeSeed = assertDefined(results[13]);
+  const beforeSeed = results[13];
   const seeded = assertDefined(results[14]);
 
-  assertStrictEquals(beforeSeed.averageGain, undefined);
-  assertStrictEquals(beforeSeed.averageLoss, undefined);
-  assertAlmostEquals(assertDefined(seeded.averageGain), 0.20357142857142868);
-  assertAlmostEquals(assertDefined(seeded.averageLoss), 0.06785714285714306);
+  assertStrictEquals(beforeSeed, undefined);
+  assertAlmostEquals(seeded.averageGain, 0.20357142857142868);
+  assertAlmostEquals(seeded.averageLoss, 0.06785714285714306);
 });
 
 Deno.test('AvgChangeProvider moment projects without mutating committed smoothing state', () => {
@@ -76,8 +68,8 @@ Deno.test('AvgChangeProvider moment projects without mutating committed smoothin
   const projected = assertDefined(provider.moment(46.1));
   const committed = assertDefined(provider.next(46.1));
 
-  assertAlmostEquals(assertDefined(projected.averageGain), assertDefined(committed.averageGain));
-  assertAlmostEquals(assertDefined(projected.averageLoss), assertDefined(committed.averageLoss));
+  assertAlmostEquals(projected.averageGain, committed.averageGain);
+  assertAlmostEquals(projected.averageLoss, committed.averageLoss);
 });
 
 Deno.test('AvgChangeProvider handles pure losses by emitting zero average gain', () => {
@@ -86,6 +78,6 @@ Deno.test('AvgChangeProvider handles pure losses by emitting zero average gain',
   const results = prices.map((price) => provider.next(price));
   const latest = assertDefined(results[4]);
 
-  assertAlmostEquals(assertDefined(latest.averageGain), 0);
-  assertAlmostEquals(assertDefined(latest.averageLoss), 1);
+  assertAlmostEquals(latest.averageGain, 0);
+  assertAlmostEquals(latest.averageLoss, 1);
 });
