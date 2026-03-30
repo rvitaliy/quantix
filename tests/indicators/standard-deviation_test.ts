@@ -62,12 +62,7 @@ Deno.test('StandardDeviation moment projects without mutating the committed wind
 });
 
 Deno.test('StandardDeviation matches the golden reference series', () => {
-  const movingAverage = new SMA({ period: 20 });
-  const deviation = new StandardDeviation();
-  const values = DEFAULT_SD_INPUT.map((value) => {
-    const mean = movingAverage.next(value);
-    return deviation.next(value, mean);
-  });
+  const values = StandardDeviation.from(DEFAULT_SD_INPUT);
 
   assertEquals(values.length, GOLDEN_SD_OUTPUT.length);
 

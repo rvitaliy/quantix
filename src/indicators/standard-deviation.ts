@@ -1,4 +1,5 @@
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
+import { SMA } from './sma.ts';
 
 /** Configuration for {@link StandardDeviation}. */
 export type StandardDeviationOptions = {
@@ -43,6 +44,18 @@ export class StandardDeviation {
   moment(value: number, mean: number | undefined): number | undefined {
     assertFiniteNumber('value', value);
     return this.#project(mean, value);
+  }
+
+  /** Computes a full standard deviation series from an iterable input. */
+  static from(values: Iterable<number>, options: StandardDeviationOptions = {}): ReadonlyArray<number | undefined> {
+    const period = options.period ?? 20;
+    const movingAverage = new SMA({ period });
+    const indicator = new StandardDeviation({ period });
+
+    return Array.from(values, (value) => {
+      const mean = movingAverage.next(value);
+      return indicator.next(value, mean);
+    });
   }
 
   #project(mean: number | undefined, previewValue?: number): number | undefined {
