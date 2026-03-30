@@ -82,18 +82,6 @@ export class BollingerBands {
   }
 }
 
-/**
- * Batch helper for calculating a full Bollinger Bands series.
- *
- * @see https://en.wikipedia.org/wiki/Bollinger_Bands
- */
-export function bollingerBands(
-  values: Iterable<number>,
-  options: BollingerBandsOptions = {},
-): Array<BollingerBandsResult | undefined> {
-  return BollingerBands.from(values, options);
-}
-
 function projectBands(middle: number, deviation: number, standardDeviations: number): BollingerBandsResult {
   return {
     lower: middle - (deviation * standardDeviations),

@@ -1,6 +1,6 @@
 import { assertAlmostEquals, assertEquals } from '@std/assert';
 
-import { SMMA, smma } from '../../mod.ts';
+import { SMMA } from '../../mod.ts';
 
 const DEFAULT_SMMA_INPUT = Array.from({ length: 25 }, (_, index) => index + 1);
 const GOLDEN_SMMA_OUTPUT = [
@@ -54,7 +54,7 @@ Deno.test('SMMA moment projects without mutating the committed average', () => {
 });
 
 Deno.test('smma computes a full series', () => {
-  const values = smma(DEFAULT_SMMA_INPUT);
+  const values = SMMA.from(DEFAULT_SMMA_INPUT);
 
   assertEquals(values.length, DEFAULT_SMMA_INPUT.length);
   assertAlmostEquals(values[13]!, 7.5);
@@ -62,7 +62,7 @@ Deno.test('smma computes a full series', () => {
 });
 
 Deno.test('SMMA matches the golden reference series', () => {
-  const values = smma(DEFAULT_SMMA_INPUT);
+  const values = SMMA.from(DEFAULT_SMMA_INPUT);
 
   assertEquals(values, [...GOLDEN_SMMA_OUTPUT]);
 });

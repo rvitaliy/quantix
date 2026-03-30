@@ -1,4 +1,4 @@
-import { SMA, sma } from '../mod.ts';
+import { SMA } from '../mod.ts';
 
 const prices = Array.from({ length: 20 }, (_, index) => 100 + index);
 const indicator = new SMA();
@@ -13,4 +13,4 @@ for (const price of prices) {
 }
 
 console.log('\nBatch SMA');
-console.log(sma(prices));
+console.log(SMA.from(prices));

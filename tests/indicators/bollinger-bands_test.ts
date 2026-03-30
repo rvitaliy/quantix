@@ -1,6 +1,6 @@
 import { assertAlmostEquals, assertEquals } from '@std/assert';
 
-import { BollingerBands, bollingerBands } from '../../mod.ts';
+import { BollingerBands } from '../../mod.ts';
 import { assertDefined } from '../test-helpers.ts';
 
 const GOLDEN_BB_VALUES = [
@@ -60,7 +60,7 @@ Deno.test('BollingerBands moment projects without mutating the stream', () => {
 });
 
 Deno.test('bollingerBands computes a full series', () => {
-  const series = bollingerBands(Array.from({ length: 25 }, (_, index) => index + 1));
+  const series = BollingerBands.from(Array.from({ length: 25 }, (_, index) => index + 1));
 
   assertEquals(series.slice(0, 19), new Array(19).fill(undefined));
   const twentieth = assertDefined(series[19]);
@@ -70,7 +70,7 @@ Deno.test('bollingerBands computes a full series', () => {
 });
 
 Deno.test('BollingerBands matches the golden reference series', () => {
-  const values = bollingerBands(Array.from({ length: 25 }, (_, index) => index + 1));
+  const values = BollingerBands.from(Array.from({ length: 25 }, (_, index) => index + 1));
 
   assertEquals(values.length, GOLDEN_BB_VALUES.length);
 

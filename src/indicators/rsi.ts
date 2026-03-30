@@ -10,6 +10,7 @@ export type RSIOptions = {
 /**
  * Relative Strength Index (RSI) using Wilder-style smoothed gains and losses.
  * Returns values in the `0..100` range after the seed period.
+ *
  * @see https://en.wikipedia.org/wiki/Relative_strength_index
  */
 export class RSI {
@@ -40,18 +41,6 @@ export class RSI {
     const indicator = new RSI(options);
     return Array.from(values, (value) => indicator.next(value));
   }
-}
-
-/**
- * Batch helper for calculating a full RSI series.
- *
- * @see https://en.wikipedia.org/wiki/Relative_strength_index
- */
-export function rsi(
-  values: Iterable<number>,
-  options: RSIOptions = {},
-): Array<number | undefined> {
-  return RSI.from(values, options);
 }
 
 function projectRsi(averages: { averageGain: number; averageLoss: number } | undefined): number | undefined {

@@ -61,15 +61,3 @@ export class SMA {
     return Array.from(values, (value) => indicator.next(value));
   }
 }
-
-/**
- * Batch helper for calculating a full SMA series.
- *
- * @see https://en.wikipedia.org/wiki/Moving_average#Simple_moving_average
- */
-export function sma(
-  values: Iterable<number>,
-  options: SMAOptions = {},
-): Array<number | undefined> {
-  return SMA.from(values, options);
-}

@@ -65,15 +65,3 @@ export class SMMA {
     return ((this.#average! * (this.#period - 1)) + value) / this.#period;
   }
 }
-
-/**
- * Batch helper for calculating a full SMMA series.
- *
- * @see https://en.wikipedia.org/wiki/Moving_average#Modified_moving_average
- */
-export function smma(
-  values: Iterable<number>,
-  options: SMMAOptions = {},
-): Array<number | undefined> {
-  return SMMA.from(values, options);
-}

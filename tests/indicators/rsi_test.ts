@@ -1,6 +1,6 @@
 import { assertAlmostEquals, assertEquals, assertStrictEquals } from '@std/assert';
 
-import { RSI, rsi } from '../../mod.ts';
+import { RSI } from '../../mod.ts';
 
 const GOLDEN_RSI_PRICES = [
   44,
@@ -80,7 +80,7 @@ Deno.test('RSI moment projects without mutating internal state', () => {
 });
 
 Deno.test('rsi computes a full series', () => {
-  const values = rsi(GOLDEN_RSI_PRICES);
+  const values = RSI.from(GOLDEN_RSI_PRICES);
 
   assertEquals(values.length, GOLDEN_RSI_PRICES.length);
   assertAlmostEquals(values[14]!, 74.99999999999996);
@@ -88,7 +88,7 @@ Deno.test('rsi computes a full series', () => {
 });
 
 Deno.test('RSI matches the golden reference series', () => {
-  const values = rsi(GOLDEN_RSI_PRICES, { period: 14 });
+  const values = RSI.from(GOLDEN_RSI_PRICES, { period: 14 });
 
   assertEquals(values.length, GOLDEN_RSI_VALUES.length);
 

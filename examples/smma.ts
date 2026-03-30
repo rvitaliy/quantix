@@ -1,4 +1,4 @@
-import { SMMA, smma } from '../mod.ts';
+import { SMMA } from '../mod.ts';
 
 const prices = Array.from({ length: 20 }, (_, index) => 100 + index);
 const indicator = new SMMA();
@@ -13,4 +13,4 @@ for (const price of prices) {
 }
 
 console.log('\nBatch SMMA');
-console.log(smma(prices));
+console.log(SMMA.from(prices));

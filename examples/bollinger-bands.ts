@@ -1,4 +1,4 @@
-import { BollingerBands, bollingerBands } from '../mod.ts';
+import { BollingerBands } from '../mod.ts';
 
 const prices = Array.from({ length: 24 }, (_, index) => 100 + index);
 const indicator = new BollingerBands();
@@ -13,4 +13,4 @@ for (const price of prices) {
 }
 
 console.log('\nBatch BollingerBands');
-console.log(bollingerBands(prices));
+console.log(BollingerBands.from(prices));
