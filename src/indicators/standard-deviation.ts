@@ -1,10 +1,8 @@
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
 
-/**
- * Configuration for {@link StandardDeviation}.
- * `period` controls the rolling sample length and defaults to `20`.
- */
+/** Configuration for {@link StandardDeviation}. */
 export type StandardDeviationOptions = {
+  /** Rolling sample length. Defaults to `20`. */
   readonly period?: number;
 };
 

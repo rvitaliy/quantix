@@ -1,11 +1,9 @@
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
 import { AvgChangeProvider } from '../internal/avg-change.ts';
 
-/**
- * Configuration for {@link RSI}.
- * `period` controls the Wilder smoothing length and defaults to `14`.
- */
+/** Configuration for {@link RSI}. */
 export type RSIOptions = {
+  /** Wilder smoothing length. Defaults to `14`. */
   readonly period?: number;
 };
 

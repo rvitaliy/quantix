@@ -1,11 +1,9 @@
 import { RingBuffer } from '../core/ring-buffer.ts';
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
 
-/**
- * Configuration for {@link SMA}.
- * `period` controls the rolling window length and defaults to `14`.
- */
+/** Configuration for {@link SMA}. */
 export type SMAOptions = {
+  /** Rolling window length. Defaults to `14`. */
   readonly period?: number;
 };
 

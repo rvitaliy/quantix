@@ -2,13 +2,11 @@ import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts
 import { SMA } from './sma.ts';
 import { StandardDeviation } from './standard-deviation.ts';
 
-/**
- * Configuration for {@link BollingerBands}.
- * `period` controls the moving window and defaults to `20`.
- * `standardDeviations` controls band width and defaults to `2`.
- */
+/** Configuration for {@link BollingerBands}. */
 export type BollingerBandsOptions = {
+  /** Moving window length. Defaults to `20`. */
   readonly period?: number;
+  /** Band width multiplier in standard deviations. Defaults to `2`. */
   readonly standardDeviations?: number;
 };
 
@@ -16,8 +14,11 @@ export type BollingerBandsOptions = {
  * Output shape produced by {@link BollingerBands}.
  */
 export type BollingerBandsResult = {
+  /** Lower band value. */
   readonly lower: number;
+  /** Middle band value, equal to the rolling SMA. */
   readonly middle: number;
+  /** Upper band value. */
   readonly upper: number;
 };
 

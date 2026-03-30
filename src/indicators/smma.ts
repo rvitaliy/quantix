@@ -1,10 +1,8 @@
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
 
-/**
- * Configuration for {@link SMMA}.
- * `period` controls the smoothing length and defaults to `14`.
- */
+/** Configuration for {@link SMMA}. */
 export type SMMAOptions = {
+  /** Smoothing length. Defaults to `14`. */
   readonly period?: number;
 };
 
