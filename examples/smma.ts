@@ -1,16 +1,17 @@
 import { SMMA } from '../mod.ts';
+import { CLOSE_VALUES, DAILY_CLOSES } from './daily-closes.ts';
 
-const prices = Array.from({ length: 20 }, (_, index) => 100 + index);
-const indicator = new SMMA();
+const indicator = new SMMA({ period: 14 });
 
-console.log('Streaming SMMA');
-for (const price of prices) {
-  console.log({
-    price,
-    next: indicator.next(price),
-    momentWithPlusOne: indicator.moment(price + 1),
-  });
+console.log('Daily Wilder SMMA(14): preview the session close, then commit it');
+for (const { date, close } of DAILY_CLOSES) {
+  const projectedBeforeClose = indicator.moment(close);
+  const committedAtClose = indicator.next(close);
+
+  console.log({ date, close, projectedBeforeClose, committedAtClose });
 }
 
-console.log('\nBatch SMMA');
-console.log(SMMA.from(prices));
+console.log('Latest batch SMMA(14)', {
+  date: DAILY_CLOSES.at(-1)!.date,
+  value: SMMA.from(CLOSE_VALUES, { period: 14 }).at(-1),
+});

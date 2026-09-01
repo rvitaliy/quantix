@@ -1,13 +1,12 @@
+import { assertPositiveInteger } from './validation.ts';
+
 export class RingBuffer<T> {
   readonly #values: (T | undefined)[];
   #cursor = 0;
   #size = 0;
 
   constructor(readonly capacity: number) {
-    if (!Number.isInteger(capacity) || capacity <= 0) {
-      throw new RangeError(`capacity must be a positive integer, received ${capacity}`);
-    }
-
+    assertPositiveInteger('capacity', capacity);
     this.#values = new Array<T | undefined>(capacity);
   }
 
@@ -22,7 +21,11 @@ export class RingBuffer<T> {
   push(value: T): T | undefined {
     const overwritten = this.#values[this.#cursor];
     this.#values[this.#cursor] = value;
-    this.#cursor = (this.#cursor + 1) % this.capacity;
+    this.#cursor += 1;
+
+    if (this.#cursor === this.capacity) {
+      this.#cursor = 0;
+    }
 
     if (this.#size < this.capacity) {
       this.#size += 1;
@@ -53,7 +56,8 @@ export class RingBuffer<T> {
       return this.#values[index];
     }
 
-    return this.#values[(this.#cursor + index) % this.capacity];
+    const position = this.#cursor + index;
+    return this.#values[position < this.capacity ? position : position - this.capacity];
   }
 
   values(): ReadonlyArray<T> {
@@ -65,9 +69,13 @@ export class RingBuffer<T> {
       return this.#values.slice(0, this.#size) as T[];
     }
 
-    return [
-      ...(this.#values.slice(this.#cursor) as T[]),
-      ...(this.#values.slice(0, this.#cursor) as T[]),
-    ];
+    const result = new Array<T>(this.#size);
+
+    for (let index = 0; index < this.#size; index += 1) {
+      const position = this.#cursor + index;
+      result[index] = this.#values[position < this.capacity ? position : position - this.capacity]!;
+    }
+
+    return result;
   }
 }

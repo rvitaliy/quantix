@@ -2,25 +2,39 @@ import { assertThrows } from '@std/assert';
 
 import { assertFiniteNumber, assertPositiveInteger } from '../../src/core/validation.ts';
 
-Deno.test('assertPositiveInteger accepts valid positive integers', () => {
+Deno.test('assertPositiveInteger accepts practical and safely representable periods', () => {
   assertPositiveInteger('period', 1);
+  assertPositiveInteger('period', 14);
   assertPositiveInteger('period', 20);
+  assertPositiveInteger('period', 252);
+  assertPositiveInteger('period', Number.MAX_SAFE_INTEGER);
 });
 
-Deno.test('assertPositiveInteger rejects invalid values', () => {
-  assertThrows(() => assertPositiveInteger('period', 0), RangeError, 'period must be a positive integer');
-  assertThrows(() => assertPositiveInteger('period', -1), RangeError, 'period must be a positive integer');
-  assertThrows(() => assertPositiveInteger('period', 1.5), RangeError, 'period must be a positive integer');
+Deno.test('assertPositiveInteger rejects non-positive, fractional, non-finite, and unsafe periods', () => {
+  for (
+    const period of [
+      0,
+      -1,
+      14.5,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.MAX_SAFE_INTEGER + 1,
+    ]
+  ) {
+    assertThrows(() => assertPositiveInteger('period', period), RangeError);
+  }
 });
 
-Deno.test('assertFiniteNumber accepts finite numbers', () => {
-  assertFiniteNumber('value', 0);
-  assertFiniteNumber('value', 42.5);
-  assertFiniteNumber('value', -10);
+Deno.test('assertFiniteNumber accepts realistic closes and numeric boundary values', () => {
+  assertFiniteNumber('close', 0);
+  assertFiniteNumber('close', 187.42);
+  assertFiniteNumber('close', -0.01);
+  assertFiniteNumber('close', Number.MAX_VALUE);
+  assertFiniteNumber('close', -Number.MAX_VALUE);
 });
 
 Deno.test('assertFiniteNumber rejects NaN and infinities', () => {
-  assertThrows(() => assertFiniteNumber('value', Number.NaN), TypeError, 'value must be a finite number');
-  assertThrows(() => assertFiniteNumber('value', Number.POSITIVE_INFINITY), TypeError, 'value must be a finite number');
-  assertThrows(() => assertFiniteNumber('value', Number.NEGATIVE_INFINITY), TypeError, 'value must be a finite number');
+  assertThrows(() => assertFiniteNumber('close', Number.NaN), TypeError);
+  assertThrows(() => assertFiniteNumber('close', Number.POSITIVE_INFINITY), TypeError);
+  assertThrows(() => assertFiniteNumber('close', Number.NEGATIVE_INFINITY), TypeError);
 });

@@ -1,4 +1,5 @@
 import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
+import { WilderAverage } from '../internal/wilder-average.ts';
 
 /** Configuration for {@link SMMA}. */
 export type SMMAOptions = {
@@ -13,55 +14,38 @@ export type SMMAOptions = {
  * @see https://en.wikipedia.org/wiki/Moving_average#Modified_moving_average
  */
 export class SMMA {
-  readonly #period: number;
-  #sum = 0;
-  #average: number | undefined;
-  #filled = 0;
+  readonly #average: WilderAverage;
 
+  /** Creates an SMMA with the requested smoothing period. */
   constructor(options: SMMAOptions = {}) {
-    const period = options.period ?? 14;
+    const period = options.period === undefined ? 14 : options.period;
     assertPositiveInteger('period', period);
-    this.#period = period;
+    this.#average = new WilderAverage(period);
   }
 
   /** Commits a new value into the smoothed average state. */
   next(value: number): number | undefined {
     assertFiniteNumber('value', value);
 
-    if (this.#average !== undefined) {
-      this.#average = this.#project(value);
-      return this.#average;
-    }
-
-    this.#sum += value;
-    this.#filled += 1;
-
-    if (this.#filled < this.#period) {
-      return undefined;
-    }
-
-    this.#average = this.#sum / this.#period;
-    return this.#average;
+    return this.#average.next(value);
   }
 
   /** Projects the next smoothed average without mutating committed state. */
   moment(value: number): number | undefined {
     assertFiniteNumber('value', value);
 
-    if (this.#average === undefined) {
-      return undefined;
-    }
-
-    return this.#project(value);
+    return this.#average.preview(value);
   }
 
   /** Computes a full SMMA series from an iterable input. */
   static from(values: Iterable<number>, options: SMMAOptions = {}): ReadonlyArray<number | undefined> {
     const indicator = new SMMA(options);
-    return Array.from(values, (value) => indicator.next(value));
-  }
+    const result: Array<number | undefined> = [];
 
-  #project(value: number): number {
-    return ((this.#average! * (this.#period - 1)) + value) / this.#period;
+    for (const value of values) {
+      result.push(indicator.next(value));
+    }
+
+    return result;
   }
 }

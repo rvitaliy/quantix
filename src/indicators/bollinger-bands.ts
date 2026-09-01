@@ -1,6 +1,5 @@
-import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
-import { SMA } from './sma.ts';
-import { StandardDeviation } from './standard-deviation.ts';
+import { assertNonNegativeFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
+import { RollingWindowStats } from '../internal/rolling-window-stats.ts';
 
 /** Configuration for {@link BollingerBands}. */
 export type BollingerBandsOptions = {
@@ -10,9 +9,7 @@ export type BollingerBandsOptions = {
   readonly standardDeviations?: number;
 };
 
-/**
- * Output shape produced by {@link BollingerBands}.
- */
+/** Output shape produced by {@link BollingerBands}. */
 export type BollingerBandsResult = {
   /** Lower band value. */
   readonly lower: number;
@@ -23,54 +20,62 @@ export type BollingerBandsResult = {
 };
 
 /**
- * Bollinger Bands built from a rolling SMA and population standard deviation.
- * Returns lower, middle, and upper bands after the mean window is ready.
+ * Bollinger Bands built from one rolling mean and population-variance state.
+ * Returns lower, middle, and upper bands after the window is ready.
  *
  * @see https://en.wikipedia.org/wiki/Bollinger_Bands
  */
 export class BollingerBands {
   readonly #standardDeviations: number;
-  readonly #sma: SMA;
-  readonly #standardDeviation: StandardDeviation;
+  readonly #statistics: RollingWindowStats;
 
+  /** Creates Bollinger Bands with the requested period and width. */
   constructor(options: BollingerBandsOptions = {}) {
-    const period = options.period ?? 20;
-    const standardDeviations = options.standardDeviations ?? 2;
+    const period = options.period === undefined ? 20 : options.period;
+    const standardDeviations = options.standardDeviations === undefined ? 2 : options.standardDeviations;
 
     assertPositiveInteger('period', period);
-    assertFiniteNumber('standardDeviations', standardDeviations);
+    assertNonNegativeFiniteNumber('standardDeviations', standardDeviations);
 
     this.#standardDeviations = standardDeviations;
-    this.#sma = new SMA({ period });
-    this.#standardDeviation = new StandardDeviation({ period });
+    this.#statistics = new RollingWindowStats(period);
   }
 
-  /** Commits a new value into the Bollinger Bands state. */
+  /**
+   * Commits a new value into the Bollinger Bands state.
+   *
+   * @throws {RangeError} If a projected band is outside the finite number range.
+   */
   next(value: number): BollingerBandsResult | undefined {
-    assertFiniteNumber('value', value);
-
-    const middle = this.#sma.next(value);
-    const deviation = this.#standardDeviation.next(value, middle);
-
-    if (middle === undefined || deviation === undefined) {
+    if (!this.#statistics.prepareNext(value)) {
+      this.#statistics.commitPrepared();
       return undefined;
     }
 
-    return projectBands(middle, deviation, this.#standardDeviations);
+    const result = projectBands(
+      this.#statistics.previewMean!,
+      this.#statistics.previewStandardDeviation!,
+      this.#standardDeviations,
+    );
+    this.#statistics.commitPrepared();
+    return result;
   }
 
-  /** Projects the next band values without mutating committed state. */
+  /**
+   * Projects the next band values without mutating committed state.
+   *
+   * @throws {RangeError} If a projected band is outside the finite number range.
+   */
   moment(value: number): BollingerBandsResult | undefined {
-    assertFiniteNumber('value', value);
-
-    const middle = this.#sma.moment(value);
-    const deviation = this.#standardDeviation.moment(value, middle);
-
-    if (middle === undefined || deviation === undefined) {
+    if (!this.#statistics.preview(value)) {
       return undefined;
     }
 
-    return projectBands(middle, deviation, this.#standardDeviations);
+    return projectBands(
+      this.#statistics.previewMean!,
+      this.#statistics.previewStandardDeviation!,
+      this.#standardDeviations,
+    );
   }
 
   /** Computes a full Bollinger Bands series from an iterable input. */
@@ -78,14 +83,28 @@ export class BollingerBands {
     BollingerBandsResult | undefined
   > {
     const indicator = new BollingerBands(options);
-    return Array.from(values, (value) => indicator.next(value));
+    const result: Array<BollingerBandsResult | undefined> = [];
+
+    for (const value of values) {
+      result.push(indicator.next(value));
+    }
+
+    return result;
   }
 }
 
 function projectBands(middle: number, deviation: number, standardDeviations: number): BollingerBandsResult {
+  const width = deviation * standardDeviations;
+  const lower = middle - width;
+  const upper = middle + width;
+
+  if (!Number.isFinite(lower) || !Number.isFinite(middle) || !Number.isFinite(upper)) {
+    throw new RangeError('Bollinger Bands result must contain only finite numbers');
+  }
+
   return {
-    lower: middle - (deviation * standardDeviations),
+    lower,
     middle,
-    upper: middle + (deviation * standardDeviations),
+    upper,
   };
 }

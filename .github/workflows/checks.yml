@@ -1,56 +1,66 @@
 name: Checks
 
 on:
+  pull_request:
+  push:
+    branches:
+      - main
   workflow_call:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  format:
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    timeout-minutes: 10
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          deno-version: v2.x
+          persist-credentials: false
 
-      - name: Run format check
+      - name: Set up Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          cache: true
+          deno-version: v2.9.6
+
+      - name: Install locked dependencies
+        run: deno ci
+
+      - name: Audit locked dependencies
+        run: deno task audit
+
+      - name: Check formatting
         run: deno task fmt
 
-  lint:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-
-      - name: Run lint
+      - name: Lint source
         run: deno task lint
 
-  test:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+      - name: Type-check public entrypoint, examples, and workflow scripts
+        run: deno task typecheck
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Lint public API documentation
+        run: deno task doc
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
+      - name: Run tests with coverage
+        shell: bash
+        run: |
+          set -o pipefail
+          deno task coverage | tee coverage.txt
+          {
+            echo '### Test coverage'
+            echo '```text'
+            cat coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Run tests
-        run: deno task test
+      - name: Verify the JSR package
+        run: deno task publish:dry-run

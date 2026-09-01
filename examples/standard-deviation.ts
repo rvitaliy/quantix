@@ -1,18 +1,17 @@
-import { SMA, StandardDeviation } from '../mod.ts';
+import { StandardDeviation } from '../mod.ts';
+import { CLOSE_VALUES, DAILY_CLOSES } from './daily-closes.ts';
 
-const prices = Array.from({ length: 24 }, (_, index) => 100 + index);
-const movingAverage = new SMA({ period: 20 });
-const indicator = new StandardDeviation();
+const indicator = new StandardDeviation({ period: 20 });
 
-console.log('Streaming StandardDeviation');
-for (const price of prices) {
-  const mean = movingAverage.next(price);
-  const previewMean = movingAverage.moment(price + 1);
+console.log('Daily population standard deviation(20): preview, then commit');
+for (const { date, close } of DAILY_CLOSES) {
+  const projectedBeforeClose = indicator.moment(close);
+  const committedAtClose = indicator.next(close);
 
-  console.log({
-    price,
-    mean,
-    next: indicator.next(price, mean),
-    momentWithPlusOne: indicator.moment(price + 1, previewMean),
-  });
+  console.log({ date, close, projectedBeforeClose, committedAtClose });
 }
+
+console.log('Latest batch population deviation(20)', {
+  date: DAILY_CLOSES.at(-1)!.date,
+  value: StandardDeviation.from(CLOSE_VALUES, { period: 20 }).at(-1),
+});

@@ -5,61 +5,89 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-jsr-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   verify-version:
+    name: Verify release ref
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    timeout-minutes: 5
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
+      - name: Set up Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
-          deno-version: v2.x
+          cache: true
+          deno-version: v2.9.6
+
+      - name: Install locked dependencies
+        run: deno ci
 
       - name: Verify tag matches package version
+        shell: bash
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
-          VERSION=$(deno eval 'const config = JSON.parse(await Deno.readTextFile("deno.jsonc")); console.log(config.version);')
-          if [ "$TAG" != "$VERSION" ]; then
-            echo "Tag v$TAG does not match package version $VERSION"
+          VERSION="$(deno run --no-config --no-lock --allow-read=deno.jsonc .github/scripts/read-version.ts)"
+          EXPECTED_TAG="v${VERSION}"
+          if [[ "$GITHUB_REF_NAME" != "$EXPECTED_TAG" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match package version $VERSION"
             exit 1
           fi
 
       - name: Verify tag commit is on main
+        shell: bash
         run: |
-          git fetch origin main --depth=1
-          if ! git branch -r --contains "$GITHUB_SHA" | grep -q "origin/main"; then
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
             echo "Tag commit $GITHUB_SHA is not contained in origin/main"
             exit 1
           fi
 
   checks:
+    name: Release checks
     needs:
       - verify-version
     uses: ./.github/workflows/checks.yml
+    permissions:
+      contents: read
 
   publish:
+    name: Publish package
     runs-on: ubuntu-latest
     needs:
       - checks
+    timeout-minutes: 10
+    environment:
+      name: jsr
+      url: https://jsr.io/@rvitaliy/quantix
     permissions:
       contents: read
       id-token: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          deno-version: v2.x
+          persist-credentials: false
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          cache: true
+          deno-version: v2.9.6
+
+      - name: Install locked dependencies
+        run: deno ci
 
       - name: Publish
         run: deno publish

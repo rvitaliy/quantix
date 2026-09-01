@@ -1,6 +1,14 @@
 export function assertPositiveInteger(name: string, value: number): void {
-  if (!Number.isInteger(value) || value <= 0) {
-    throw new RangeError(`${name} must be a positive integer, received ${value}`);
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    throw new RangeError(`${name} must be a positive safe integer, received ${value}`);
+  }
+}
+
+export function assertNonNegativeFiniteNumber(name: string, value: number): void {
+  assertFiniteNumber(name, value);
+
+  if (value < 0) {
+    throw new RangeError(`${name} must be non-negative, received ${value}`);
   }
 }
 

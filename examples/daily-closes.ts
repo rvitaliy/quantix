@@ -1,0 +1,30 @@
+/** A deterministic, fictional daily-close series shaped like a liquid equity. */
+export const DAILY_CLOSES = [
+  { date: '2025-04-01', close: 187.42 },
+  { date: '2025-04-02', close: 188.11 },
+  { date: '2025-04-03', close: 187.36 },
+  { date: '2025-04-04', close: 189.02 },
+  { date: '2025-04-07', close: 188.47 },
+  { date: '2025-04-08', close: 190.15 },
+  { date: '2025-04-09', close: 189.74 },
+  { date: '2025-04-10', close: 191.08 },
+  { date: '2025-04-11', close: 190.22 },
+  { date: '2025-04-14', close: 189.63 },
+  { date: '2025-04-15', close: 191.31 },
+  { date: '2025-04-16', close: 192.04 },
+  { date: '2025-04-17', close: 191.46 },
+  { date: '2025-04-21', close: 192.58 },
+  { date: '2025-04-22', close: 194.21 },
+  { date: '2025-04-23', close: 193.37 },
+  { date: '2025-04-24', close: 192.84 },
+  { date: '2025-04-25', close: 194.56 },
+  { date: '2025-04-28', close: 195.18 },
+  { date: '2025-04-29', close: 194.43 },
+  { date: '2025-04-30', close: 196.07 },
+  { date: '2025-05-01', close: 195.29 },
+  { date: '2025-05-02', close: 196.84 },
+  { date: '2025-05-05', close: 197.41 },
+  { date: '2025-05-06', close: 196.52 },
+] as const;
+
+export const CLOSE_VALUES: readonly number[] = DAILY_CLOSES.map(({ close }) => close);

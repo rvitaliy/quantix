@@ -2,10 +2,10 @@
 
 # Deno
 .deno/
-deno.lock
 
 # Test and coverage artifacts
 coverage/
+coverage.lcov
 
 # Environment files
 .env

@@ -1,5 +1,5 @@
-import { assertFiniteNumber, assertPositiveInteger } from '../core/validation.ts';
-import { SMA } from './sma.ts';
+import { assertPositiveInteger } from '../core/validation.ts';
+import { RollingWindowStats } from '../internal/rolling-window-stats.ts';
 
 /** Configuration for {@link StandardDeviation}. */
 export type StandardDeviationOptions = {
@@ -9,74 +9,50 @@ export type StandardDeviationOptions = {
 
 /**
  * Rolling population standard deviation over a fixed window.
- * Returns `undefined` until the corresponding mean is available.
+ * Returns `undefined` until the window is full.
  *
  * @see https://en.wikipedia.org/wiki/Standard_deviation
  */
 export class StandardDeviation {
-  readonly #period: number;
-  readonly #values: Array<number | undefined>;
-  #cursor = 0;
-  #size = 0;
+  readonly #statistics: RollingWindowStats;
 
+  /** Creates a rolling population standard deviation. */
   constructor(options: StandardDeviationOptions = {}) {
-    const period = options.period ?? 20;
+    const period = options.period === undefined ? 20 : options.period;
     assertPositiveInteger('period', period);
-    this.#period = period;
-    this.#values = new Array<number | undefined>(period);
+    this.#statistics = new RollingWindowStats(period);
   }
 
   /** Commits a new value into the rolling deviation window. */
-  next(value: number, mean: number | undefined): number | undefined {
-    assertFiniteNumber('value', value);
-
-    this.#values[this.#cursor] = value;
-    this.#cursor = (this.#cursor + 1) % this.#period;
-
-    if (this.#size < this.#period) {
-      this.#size += 1;
+  next(value: number): number | undefined {
+    if (!this.#statistics.prepareNext(value)) {
+      this.#statistics.commitPrepared();
+      return undefined;
     }
 
-    return this.#project(mean);
+    const result = this.#statistics.previewStandardDeviation;
+    this.#statistics.commitPrepared();
+    return result;
   }
 
   /** Projects the next deviation without mutating committed state. */
-  moment(value: number, mean: number | undefined): number | undefined {
-    assertFiniteNumber('value', value);
-    return this.#project(mean, value);
+  moment(value: number): number | undefined {
+    if (!this.#statistics.preview(value)) {
+      return undefined;
+    }
+
+    return this.#statistics.previewStandardDeviation;
   }
 
   /** Computes a full standard deviation series from an iterable input. */
   static from(values: Iterable<number>, options: StandardDeviationOptions = {}): ReadonlyArray<number | undefined> {
-    const period = options.period ?? 20;
-    const movingAverage = new SMA({ period });
-    const indicator = new StandardDeviation({ period });
+    const indicator = new StandardDeviation(options);
+    const result: Array<number | undefined> = [];
 
-    return Array.from(values, (value) => {
-      const mean = movingAverage.next(value);
-      return indicator.next(value, mean);
-    });
-  }
-
-  #project(mean: number | undefined, previewValue?: number): number | undefined {
-    if (mean === undefined) {
-      return undefined;
+    for (const value of values) {
+      result.push(indicator.next(value));
     }
 
-    let squaredDistanceSum = 0;
-    const projectedSize = previewValue === undefined ? this.#size : Math.min(this.#size + 1, this.#period);
-
-    for (let index = 0; index < this.#size; index += 1) {
-      const current = previewValue !== undefined && this.#size === this.#period && index === this.#cursor ? previewValue : this.#values[index]!;
-      const distance = current - mean;
-      squaredDistanceSum += distance * distance;
-    }
-
-    if (previewValue !== undefined && this.#size < this.#period) {
-      const distance = previewValue - mean;
-      squaredDistanceSum += distance * distance;
-    }
-
-    return Math.sqrt(squaredDistanceSum / projectedSize);
+    return result;
   }
 }
